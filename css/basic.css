@@ -1,0 +1,11 @@
+body {
+    background:#222222;
+    padding:0;
+    margin:0;
+    font-weight: bold;
+    overflow:hidden;
+}
+
+a {
+    color: #00ffff;
+}
