@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>A little solar system</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="css/basic.css">
+
+    <script src="three.js"></script>
+    <script src="js/Detector.js"></script>
+
+    <script type="text/javascript">
+
+        // Checks that your browser supports WebGL.
+        if (!Detector.webgl) Detector.addGetWebGLMessage();
+
+        let renderer = null;
+        let scene = null;
+        let camera = null;
+        let curTime = Date.now();
+
+        let solar = null;
+        let earth = null;
+        let moon = null;
+
+        let solarSystemGroup = null;
+        let earthGroup = null;
+
+        // This function is called whenever the document is loaded
+        function init() {
+            // Get display canvas
+            let canvas = document.getElementById("webglcanvas");
+            console.log(canvas);
+
+            // Create the Three.js renderer and attach it to our canvas
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                antialias: true
+            });
+
+            // Set the viewport size
+            renderer.setSize(canvas.width, canvas.height);
+
+            // Create a new Three.js scene
+            scene = new THREE.Scene();
+
+            // Add  a camera so we can view the scene
+            camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 1, 4000);
+
+            /* --------------------------------------------------------------------- */
+
+            solarSystemGroup = new THREE.Group();
+            earthGroup = new THREE.Group();
+
+            // SOLAR
+            let solarMap = new THREE.TextureLoader().load("images/sun.jpg");
+            let solarMaterial = new THREE.MeshPhongMaterial({
+                map: solarMap
+            });
+            let solarGemomatry = new THREE.SphereGeometry(1, 50, 50);
+            solar = new THREE.Mesh(solarGemomatry, solarMaterial);
+            solarSystemGroup.add(solar);
+
+            // LIGHT
+            let light = new THREE.PointLight( "#FFFADD", 1.5);
+            light.position.x = 0;
+            light.position.y = 0;
+            scene.add( light );
+
+            // EARTH
+            let earthMap = new THREE.TextureLoader().load("images/earth_atmos_2048.jpg");
+            let earthMaterial = new THREE.MeshPhongMaterial({
+                map: earthMap
+            });
+            let earthGeometry = new THREE.SphereGeometry(0.25, 50, 50);
+            earth = new THREE.Mesh(earthGeometry, earthMaterial);
+            earth.position.x = 0;
+            earthGroup.add(earth);
+
+            // MOON
+            let moonMap = new THREE.TextureLoader().load("images/moon_1024.jpg");
+            let moonMaterial = new THREE.MeshPhongMaterial({
+                map: moonMap
+            });
+            let moonGeometry = new THREE.SphereGeometry(0.15, 50, 50);
+            moon = new THREE.Mesh(moonGeometry, moonMaterial);
+            moon.position.x = 1;
+            earthGroup.add(moon);
+
+            // Eloignement du groupe par rapport au Soleil.
+            earthGroup.position.x = 5;
+            solarSystemGroup.add(earthGroup);
+
+            // Configuration du système solaire.
+            solarSystemGroup.position.z = -8;
+            solarSystemGroup.rotation.x = Math.PI / 5;
+            solarSystemGroup.rotation.y = Math.PI / 5;
+            scene.add(solarSystemGroup);
+        }
+
+        // This function is called regularly to update the canvas webgl.
+        function run() {
+            // Ask to call again run
+            requestAnimationFrame(run);
+
+            // Render the scene
+            render();
+
+            // Calls the animate function if objects or camera should move
+            animate();
+        }
+
+        // This function is called regularly to take care of the rendering.
+        function render() {
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // This function is called regularly to update objects.
+        function animate() {
+            // Computes how time has changed since last display
+            let now = Date.now();
+            let deltaTime = now - curTime;
+            curTime = now;
+            let fracTime = deltaTime / 1000; // in seconds
+
+            // Now we can move objects, camera, etc.
+            let angle = Math.PI * 2 * fracTime; // one turn per 10 second.
+
+            solarSystemGroup.rotation.y += angle / 365;
+
+            earthGroup.rotation.y       += angle / 28;
+            earth.rotation.y            += angle;
+            moon.rotation.y             += angle /28;
+
+            // La caméra suit la Terre
+            camera.lookAt( earth.matrixWorld.getPosition() );
+        }
+
+    </script>
+
+</head>
+<body>
+    <canvas id="webglcanvas" style="border: none; background-color: black" width="1920" height="1080"></canvas>
+
+    <!-- We run the WebGL code at the end to be sure that the document is loaded. -->
+    <script>
+        init();
+        run();
+    </script>
+</body>
+</html>
+
